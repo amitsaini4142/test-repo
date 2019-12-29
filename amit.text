@@ -1,1 +1,58 @@
-hello
+import { useState, useEffect, useRef } from "react";
+
+const InfiniteScroll = React.memo(function(props) {
+    const [prevY,setPrevY] = useState(null);
+    const prevYRef = useRef(prevY);
+    prevYRef.current = prevY;
+    let loadingRef;
+    useEffect(() => {
+        
+        initializeObserver();
+    },[]);
+    function initializeObserver(){
+        const options = {
+            root: null, // Page as root
+            rootMargin: '0px',
+            threshold: [0.1]
+        };
+        const observer = new IntersectionObserver(
+            handleObserver,
+            options
+        );
+        observer.observe(loadingRef);
+    }
+    function handleObserver(entities, observer) {
+        // const y = entities[0].boundingClientRect.y;
+        if(entities[0].isIntersecting && props.hasMore){
+            const y = window.scrollY;
+            if (y > prevYRef.current) {
+                props.onInfiniteScroll();
+                setPrevY(y);
+            }
+        } 
+    }
+    return(
+        <React.Fragment>
+            {props.children}
+            <div ref={ref => (loadingRef = ref)}>
+                {
+                    props.hasMore &&
+                    <div style={{padding:"2px"}}>
+                        <div>
+                            {   props.isLoading &&
+                                (props.loader ?
+                                props.loader :
+                                <span>Loading...</span>)
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </React.Fragment>
+    )       
+});
+
+export default InfiniteScroll;
+
+
+                    <InfiniteScroll dataLength={storiesData.length} onInfiniteScroll={this.onInfiniteScroll} isLoading={this.state.isLoading} hasMore={storiesData.length < this.state.totalCount}>
